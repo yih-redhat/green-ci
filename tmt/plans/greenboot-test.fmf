@@ -38,3 +38,8 @@ provision:
     - when: distro == fedora-40
       enabled: false
 
+/greenboot-bootc-tf:
+  summary: Test greenboot with bootc qcow2 image
+  environment+:
+    TEST_CASE: greenboot-bootc-tf
+
