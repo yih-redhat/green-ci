@@ -13,6 +13,7 @@ provision:
     memory: ">= 8 GB"
 
 /greenboot-bootc-qcow2:
+  tag: qcow2
   summary: Test greenboot with bootc qcow2 image
   environment+:
     TEST_CASE: greenboot-bootc-qcow2
@@ -37,4 +38,9 @@ provision:
   adjust+:
     - when: distro == fedora-40
       enabled: false
+
+/greenboot-bootc-tf:
+  summary: Test greenboot with bootc qcow2 image
+  environment+:
+    TEST_CASE: greenboot-bootc-tf
 
