@@ -1,0 +1,58 @@
+---
+name: Greenboot Test on Fedora 40
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  fedora-40-bootc-qcow2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get information for pull request
+        uses: octokit/request-action@v2.x
+        id: pr-api
+        with:
+          route: GET /repos/${{ github.repository }}/pulls/${{ github.event.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clone repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4
+        with:
+          ref: ${{ needs.pr-info.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Run tmt tests
+        continue-on-error: true
+        run: |
+          sudo apt update
+          sudo apt install libkrb5-dev pkg-config libvirt-dev genisoimage qemu-kvm libvirt-daemon-system --fix-missing
+          pip install --user "tmt[provision]"
+          pip install --user "tmt[virtual]"
+          sudo systemctl start libvirtd
+          tmt run \
+              -e STAGE_REDHAT_IO_USERNAME=${{ secrets.STAGE_REDHAT_IO_USERNAME }} \
+              -e STAGE_REDHAT_IO_TOKEN=${{ secrets.STAGE_REDHAT_IO_TOKEN }} \
+              -e QUAY_USERNAME=${{ secrets.QUAY_USERNAME }} \
+              -e QUAY_PASSWORD=${{ secrets.QUAY_PASSWORD }} \
+              plan --name greenboot-bootc-tf discover execute -vv provision -h virtual \
+              --image https://artifacts.dev.testing-farm.io/images/Fedora-40-image-mode-x86_64.qcow2
+
+      - name: Run testing-farm tests
+        continue-on-error: true
+        run: |
+          sudo curl -Lo /bin/testing-farm "https://gitlab.com/testing-farm/cli/-/raw/main/container/testing-farm"
+          sudo chmod +x /bin/testing-farm
+          testing-farm request \
+              -e STAGE_REDHAT_IO_USERNAME=${{ secrets.STAGE_REDHAT_IO_USERNAME }} \
+              -e STAGE_REDHAT_IO_TOKEN=${{ secrets.STAGE_REDHAT_IO_TOKEN }} \
+              -e QUAY_USERNAME=${{ secrets.QUAY_USERNAME }} \
+              -e QUAY_PASSWORD=${{ secrets.QUAY_PASSWORD }} \
+              --plan greenboot-bootc-tf \
+              --git-url ${{ fromJson(steps.pr-api.outputs.data).head.repo.html_url }} \
+              --git-ref ${{ fromJson(steps.pr-api.outputs.data).head.ref }} \
+              --compose Fedora-40-image-mode \
+              --arch x86_64 \
+              --timeout 120
