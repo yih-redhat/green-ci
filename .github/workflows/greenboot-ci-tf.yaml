@@ -1,9 +1,9 @@
 ---
 name: Greenboot Test on Fedora 40
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+# on:
+#   pull_request:
+#     types: [opened, synchronize, reopened]
 
 jobs:
   pr-info:
@@ -52,22 +52,21 @@ jobs:
           fetch-depth: 0
 
       - name: Run the tests
-        uses: sclorg/testing-farm-as-github-action@v3.1.2
-        with:
-          compose: Fedora-40
-          api_key: ${{ secrets.TF_API_KEY }}
-          git_url: ${{ needs.pr-info.outputs.repo_url }}
-          git_ref: ${{ needs.pr-info.outputs.ref }}
-          github_token: ${{ secrets.PAT }}
-          update_pull_request_status: true
-          pull_request_status_name: "f40-bootc-qcow2"
-          tmt_context: "arch=x86_64;distro=fedora-40"
-          tmt_plan_regex: greenboot-bootc-qcow2
-          tf_scope: private
-          secrets: "QUAY_USERNAME=${{ secrets.QUAY_USERNAME }};QUAY_PASSWORD=${{ secrets.QUAY_PASSWORD }};STAGE_REDHAT_IO_USERNAME=${{ secrets.STAGE_REDHAT_IO_USERNAME }};STAGE_REDHAT_IO_TOKEN=${{ secrets.STAGE_REDHAT_IO_TOKEN }}"
-          variables: "ARCH=x86_64"
-          timeout: 180
-
+        run: |
+          curl -Lo ~/bin/testing-farm "https://gitlab.com/testing-farm/cli/-/raw/main/container/testing-farm"
+          chmod +x ~/bin/testing-farm
+          testing-farm update
+          testing-farm request \
+              --environment STAGE_REDHAT_IO_USERNAME=${{ secrets.STAGE_REDHAT_IO_USERNAME }} \
+              --environment STAGE_REDHAT_IO_TOKEN=${{ secrets.STAGE_REDHAT_IO_TOKEN }} \
+              --environment QUAY_USERNAME=${{ secrets.QUAY_USERNAME }} \
+              --environment QUAY_PASSWORD=${{ secrets.QUAY_PASSWORD }} \
+              --plan greenboot-bootc-tf \
+              --git-url https://github.com/yih-redhat/green-ci.git \
+              --git-ref main \
+              --compose Fedora-40-image-mode \
+              --arch x86_64 \
+              --timeout 120
 
 
 
