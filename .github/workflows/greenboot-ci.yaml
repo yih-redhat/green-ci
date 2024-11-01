@@ -58,6 +58,7 @@ jobs:
           api_key: ${{ secrets.TF_API_KEY }}
           git_url: ${{ needs.pr-info.outputs.repo_url }}
           git_ref: ${{ needs.pr-info.outputs.ref }}
+          github_token: ${{ secrets.PAT }}
           update_pull_request_status: true
           pull_request_status_name: "f40-bootc-qcow2"
           tmt_context: "arch=x86_64;distro=fedora-40"
