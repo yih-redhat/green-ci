@@ -1,0 +1,33 @@
+---
+name: Greenboot Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  fedora41-bootc-qcow2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get information for pull request
+        uses: octokit/request-action@v2.x
+        id: pr-api
+        with:
+          route: GET /repos/${{ github.repository }}/pulls/${{ github.event.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Run testing-farm tests
+        run: |
+          pip install --user tft-cli
+          export TESTING_FARM_API_TOKEN=${{ secrets.TF_API_KEY }}
+          testing-farm request \
+            -e STAGE_REDHAT_IO_USERNAME="${{ secrets.STAGE_REDHAT_IO_USERNAME }}" \
+            -e STAGE_REDHAT_IO_TOKEN="${{ secrets.STAGE_REDHAT_IO_TOKEN }}" \
+            -e QUAY_USERNAME="${{ secrets.QUAY_USERNAME }}" \
+            -e QUAY_PASSWORD="${{ secrets.QUAY_PASSWORD }}" \
+            --plan bootc-tf \
+            --git-url ${{ fromJson(steps.pr-api.outputs.data).head.repo.html_url }} \
+            --git-ref ${{ fromJson(steps.pr-api.outputs.data).head.ref }} \
+            --compose Fedora-41-image-mode
