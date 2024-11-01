@@ -32,6 +32,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check outputs
+        id: check_output
+        run: |
+          echo "git_url: fromJson(steps.pr-api.outputs.data).head.repo.html_url"
+          echo "git_ref: fromJson(steps.pr-api.outputs.data).head.ref"
+
     outputs:
       allowed_user: ${{ steps.check_user_perm.outputs.allowed_user }}
       sha: ${{ fromJson(steps.pr-api.outputs.data).head.sha }}
@@ -58,7 +64,7 @@ jobs:
           api_key: ${{ secrets.TF_API_KEY }}
           git_url: ${{ needs.pr-info.outputs.repo_url }}
           git_ref: ${{ needs.pr-info.outputs.ref }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PAT }}
           update_pull_request_status: true
           pull_request_status_name: "f40-bootc-qcow2"
           tmt_context: "arch=x86_64;distro=fedora-40"
