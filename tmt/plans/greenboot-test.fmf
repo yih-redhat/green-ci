@@ -9,32 +9,32 @@ provision:
     virtualization:
       is-supported: true
     cpu:
-      processors: ">= 4"
-    memory: ">= 8 GB"
+      processors: ">= 2"
+    memory: ">= 6 GB"
 
-/greenboot-bootc-qcow2:
+/bootc-qcow2:
+  tag: qcow2
   summary: Test greenboot with bootc qcow2 image
   environment+:
-    TEST_CASE: greenboot-bootc-qcow2
+    TEST_CASE: bootc-qcow2
 
-/greenboot-bootc-anaconda-iso:
+/bootc-anaconda-iso:
   summary: Test greenboot with bootc anaconda iso
   environment+:
-    TEST_CASE: greenboot-bootc-anaconda-iso
+    TEST_CASE: bootc-anaconda-iso
 
-/greenboot-ostree-qcow2:
+/ostree-qcow2:
   summary: Test greenboot with ostree qcow2 image
   environment+:
-    TEST_CASE: greenboot-ostree-qcow2
-  adjust+:
-    - when: distro == fedora-40
-      enabled: false
+    TEST_CASE: ostree-qcow2
 
-/greenboot-ostree-anaconda-iso:
+/ostree-anaconda-iso:
   summary: Test greenboot with ostree anaconda iso
   environment+:
-    TEST_CASE: greenboot-ostree-anaconda-iso
-  adjust+:
-    - when: distro == fedora-40
-      enabled: false
+    TEST_CASE: ostree-anaconda-iso
+
+/bootc-tf:
+  summary: Test greenboot with bootc qcow2 image
+  environment+:
+    TEST_CASE: bootc-tf
 
