@@ -1,0 +1,40 @@
+summary: Greenboot test plan
+discover:
+  how: fmf
+  test: greenboot-test
+execute:
+  how: tmt
+provision:
+  hardware:
+    virtualization:
+      is-supported: true
+    cpu:
+      processors: ">= 4"
+    memory: ">= 8 GB"
+
+/greenboot-bootc-qcow2:
+  summary: Test greenboot with bootc qcow2 image
+  environment+:
+    TEST_CASE: greenboot-bootc-qcow2
+
+/greenboot-bootc-anaconda-iso:
+  summary: Test greenboot with bootc anaconda iso
+  environment+:
+    TEST_CASE: greenboot-bootc-anaconda-iso
+
+/greenboot-ostree-qcow2:
+  summary: Test greenboot with ostree qcow2 image
+  environment+:
+    TEST_CASE: greenboot-ostree-qcow2
+  adjust+:
+    - when: distro == fedora-40
+      enabled: false
+
+/greenboot-ostree-anaconda-iso:
+  summary: Test greenboot with ostree anaconda iso
+  environment+:
+    TEST_CASE: greenboot-ostree-anaconda-iso
+  adjust+:
+    - when: distro == fedora-40
+      enabled: false
+
