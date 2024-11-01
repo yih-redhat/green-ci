@@ -12,6 +12,8 @@ function run_tests() {
 		./greenboot-ostree-anaconda-iso.sh
 	elif [ "$TEST_CASE" = "greenboot-ostree-anaconda-iso" ]; then
 		./greenboot-ostree-anaconda-iso.sh
+	elif [ "$TEST_CASE" = "greenboot-bootc-tf" ]; then
+		./greenboot-bootc-tf.sh
 	else
 		echo "Error: Test case $TEST_CASE not found!"
 		exit 1
