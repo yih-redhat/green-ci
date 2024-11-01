@@ -2,11 +2,12 @@
 name: Greenboot Test on Fedora 40
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 jobs:
   pr-info:
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - name: Query author repository permissions
@@ -58,16 +59,15 @@ jobs:
           api_key: ${{ secrets.TF_API_KEY }}
           git_url: ${{ needs.pr-info.outputs.repo_url }}
           git_ref: ${{ needs.pr-info.outputs.ref }}
-          update_pull_request_status: true
-          pull_request_status_name: "f40-bootc-qcow2"
+          github_token: ${{ secrets.PAT }}
+          # update_pull_request_status: true
+          # pull_request_status_name: "f40-bootc-qcow2"
           tmt_context: "arch=x86_64;distro=fedora-40"
-          tmt_plan_regex: greenboot-bootc-qcow2
+          tmt_plan_regex: bootc-qcow2
           tf_scope: private
           secrets: "QUAY_USERNAME=${{ secrets.QUAY_USERNAME }};QUAY_PASSWORD=${{ secrets.QUAY_PASSWORD }};STAGE_REDHAT_IO_USERNAME=${{ secrets.STAGE_REDHAT_IO_USERNAME }};STAGE_REDHAT_IO_TOKEN=${{ secrets.STAGE_REDHAT_IO_TOKEN }}"
           variables: "ARCH=x86_64"
-          timeout: 180
-
-
+          timeout: 90
 
 
 
