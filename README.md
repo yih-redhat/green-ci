@@ -13,7 +13,7 @@ Generic Health Check Framework for systemd on [rpm-ostree](https://coreos.github
 * [How does it work](#how-does-it-work)
 * [Development](#development)
 
-## Installation
+## Installationfd
 Greenboot is comprised of two packages:
 - `greenboot` itself, with all core functionalities: check provided scripts, reboot if these checks don't pass, rollback to previous deployment if rebooting hasn't solved the problem, etc.
 - `greenboot-default-health-checks`, a series of optional and curated health checks provided by Greenboot maintainers.
