@@ -2,7 +2,7 @@
 Generic Health Check Framework for systemd on [rpm-ostree](https://coreos.github.io/rpm-ostree/) based systems.
 
 ## Table of contents
-* [Installation](#installation)
+* [Installation](#installation)fd
 * [Usage](#usage)
   + [Health checks with bash scripts](#health-checks-with-bash-scripts)
     - [Health checks included with subpackage greenboot-default-health-checks](#health-checks-included-with-subpackage-greenboot\-default\-health\-checks)
