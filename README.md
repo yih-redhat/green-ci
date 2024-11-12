@@ -11,7 +11,7 @@ Generic Health Check Framework for systemd on [rpm-ostree](https://coreos.github
     - [Wanted Checks](#wanted-checks)
   + [Configuration](#configuration)
 * [How does it work](#how-does-it-work)
-* [Development](#development)
+* [Development](#development)1
 
 ## Installation
 Greenboot is comprised of two packages:
