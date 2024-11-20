@@ -9,7 +9,7 @@ Generic Health Check Framework for systemd on [rpm-ostree](https://coreos.github
   + [Health Checks with systemd services](#health-checks-with-systemd-services)
     - [Required Checks](#required-checks)
     - [Wanted Checks](#wanted-checks)
-  + [Configuration](#configuration)
+  + [Configuration](#configuration).
 * [How does it work](#how-does-it-work)
 * [Development](#development)
 
