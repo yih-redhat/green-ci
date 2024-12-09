@@ -92,7 +92,8 @@ wait_for_ssh_up () {
 ##
 ###########################################################
 greenprint "Installing required packages"
-sudo rpm-ostree install --allow-inactive -A podman qemu-img firewalld qemu-kvm libvirt-client libvirt-daemon-kvm libvirt-daemon virt-install rpmdevtools ansible-core
+# sudo rpm-ostree install --allow-inactive -A podman qemu-img firewalld qemu-kvm libvirt-client libvirt-daemon-kvm libvirt-daemon virt-install rpmdevtools ansible-core
+sudo dnf install -y podman qemu-img firewalld qemu-kvm libvirt-client libvirt-daemon-kvm libvirt-daemon virt-install rpmdevtools ansible-core
 ansible-galaxy collection install community.general
 
 # Start firewalld
