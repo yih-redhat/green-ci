@@ -36,16 +36,25 @@ case "${ID}-${VERSION_ID}" in
         OS_VARIANT="fedora-unknown"
         BASE_IMAGE_URL="quay.io/fedora/fedora-bootc:41"
         BIB_URL="quay.io/centos-bootc/bootc-image-builder:latest"
+        BOOT_ARGS="uefi"
+        ;;
+    "fedora-42")
+        OS_VARIANT="fedora-unknown"
+        BASE_IMAGE_URL="quay.io/fedora/fedora-bootc:42"
+        BIB_URL="quay.io/centos-bootc/bootc-image-builder:latest"
+        BOOT_ARGS="uefi"
         ;;
     "centos-9")
         OS_VARIANT="centos-stream9"
         BASE_IMAGE_URL="quay.io/centos-bootc/centos-bootc:stream9"
         BIB_URL="quay.io/centos-bootc/bootc-image-builder:latest"
+        BOOT_ARGS="uefi,firmware.feature0.name=secure-boot,firmware.feature0.enabled=no"
         ;;
     "rhel-9.6")
         OS_VARIANT="rhel9-unknown"
         BASE_IMAGE_URL="registry.stage.redhat.io/rhel9/rhel-bootc:9.6"
         BIB_URL="registry.stage.redhat.io/rhel9/bootc-image-builder:9.6"
+        BOOT_ARGS="uefi"
         ;;
     *)
         echo "unsupported distro: ${ID}-${VERSION_ID}"
@@ -63,7 +72,6 @@ check_result () {
         greenprint "💚 Success"
     else
         greenprint "❌ Failed"
-        clean_up
         exit 1
     fi
 }
@@ -84,9 +92,8 @@ wait_for_ssh_up () {
 ##
 ###########################################################
 greenprint "Installing required packages"
-# sudo dnf install -y podman qemu-img firewalld qemu-kvm libvirt-client libvirt-daemon-kvm libvirt-daemon virt-install rpmdevtools
-
-sudo rpm-ostree install --allow-inactive -A podman qemu-img firewalld qemu-kvm libvirt-client libvirt-daemon-kvm libvirt-daemon virt-install rpmdevtools
+sudo rpm-ostree install --allow-inactive -A podman qemu-img firewalld qemu-kvm libvirt-client libvirt-daemon-kvm libvirt-daemon virt-install rpmdevtools ansible-core
+ansible-galaxy collection install community.general
 
 # Start firewalld
 greenprint "Start firewalld"
@@ -169,7 +176,7 @@ cp rpmbuild/RPMS/x86_64/*.rpm tests/ && popd
 ## Build bootc container with greenboot installed
 ##
 ###########################################################
-greenprint "Building rhel-edge-bootc container"
+greenprint "Building bootc container with greenboot installed"
 podman login quay.io -u ${QUAY_USERNAME} -p ${QUAY_PASSWORD}
 podman login registry.stage.redhat.io -u ${STAGE_REDHAT_IO_USERNAME} -p ${STAGE_REDHAT_IO_TOKEN}
 tee Containerfile > /dev/null << EOF
@@ -185,8 +192,8 @@ RUN dnf install -y \
 # Clean up by removing the local RPMs if desired
 RUN rm -f /tmp/greenboot-*.rpm
 EOF
-podman build  --retry=5 --retry-delay=10 -t quay.io/${QUAY_USERNAME}/greenboot-bootc:${TEST_UUID} -f Containerfile .
-greenprint "Pushing greenboot-bootc container to quay.io"
+podman build  --retry=5 --retry-delay=10s -t quay.io/${QUAY_USERNAME}/greenboot-bootc:${TEST_UUID} -f Containerfile .
+greenprint "Pushing bootc container to quay.io"
 podman push quay.io/${QUAY_USERNAME}/greenboot-bootc:${TEST_UUID}
 
 ###########################################################
@@ -234,7 +241,7 @@ podman run \
 ## Provision vm with qcow2/iso artifacts
 ##
 ###########################################################
-greenprint "Installing vm with bootc qcow2 image"
+greenprint "Installing vm with bootc qcow2/iso image"
 mv $(pwd)/output/qcow2/disk.qcow2 /var/lib/libvirt/images/${TEST_UUID}-disk.qcow2
 LIBVIRT_IMAGE_PATH_UEFI=/var/lib/libvirt/images/${TEST_UUID}-disk.qcow2
 sudo restorecon -Rv /var/lib/libvirt/images/
@@ -245,7 +252,7 @@ sudo virt-install  --name="${TEST_UUID}-uefi"\
                    --network network=integration,mac=34:49:22:B0:83:30 \
                    --os-type linux \
                    --os-variant ${OS_VARIANT} \
-                   --boot uefi \
+                   --boot ${BOOT_ARGS} \
                    --nographics \
                    --noautoconsole \
                    --wait=-1 \
@@ -276,7 +283,7 @@ tee Containerfile > /dev/null << EOF
 FROM quay.io/${QUAY_USERNAME}/greenboot-bootc:${TEST_UUID}
 RUN dnf install -y https://kite-webhook-prod.s3.amazonaws.com/greenboot-failing-unit-1.0-1.el8.noarch.rpm
 EOF
-podman build  --retry=5 --retry-delay=10 -t quay.io/${QUAY_USERNAME}/greenboot-bootc:${TEST_UUID} -f Containerfile .
+podman build  --retry=5 --retry-delay=10s -t quay.io/${QUAY_USERNAME}/greenboot-bootc:${TEST_UUID} -f Containerfile .
 greenprint "Pushing upgrade container to quay.io"
 podman push quay.io/${QUAY_USERNAME}/greenboot-bootc:${TEST_UUID}
 
@@ -289,8 +296,8 @@ greenprint "Bootc upgrade and reboot"
 sudo ssh "${SSH_OPTIONS[@]}" -i "${SSH_KEY}" ${EDGE_USER}@${GUEST_ADDRESS} "echo ${EDGE_USER_PASSWORD} |sudo -S bootc upgrade"
 sudo ssh "${SSH_OPTIONS[@]}" -i "${SSH_KEY}" ${EDGE_USER}@${GUEST_ADDRESS} "echo ${EDGE_USER_PASSWORD} |nohup sudo -S systemctl reboot &>/dev/null & exit"
 
-# Sleep 10 seconds here to make sure vm restarted already
-sleep 180
+# Wait vm to finish the fallback
+sleep 240
 
 # Check for ssh ready to go.
 greenprint "🛃 Checking for SSH is ready to go"
@@ -320,8 +327,7 @@ ansible_become_pass=${EDGE_USER_PASSWORD}
 EOF
 
 # Test greenboot functionality
-podman run --annotation run.oci.keep_original_groups=1 -v "$(pwd)":/work:z -v "${TEMPDIR}":/tmp:z \
-    --rm quay.io/rhel-edge/ansible-runner:latest ansible-playbook -v -i /tmp/inventory greenboot-bootc.yaml || RESULTS=0
+ansible-playbook -v -i /${TEMPDIR}/inventory greenboot-bootc.yaml || RESULTS=0
 
 # Test result checking
 check_result
