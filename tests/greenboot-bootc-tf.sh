@@ -152,7 +152,8 @@ fi
 if [[ $(sudo virsh net-info integration | grep 'Active' | awk '{print $2}') == 'no' ]]; then
     sudo virsh net-start integration
 fi
-sudo restorecon -rv /var/lib/libvirt
+sudo restorecon -rv /var/log/libvirt/
+systemctl restart swtpm-workaround.service
 
 ###########################################################
 ##
