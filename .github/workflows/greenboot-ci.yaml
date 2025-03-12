@@ -65,9 +65,14 @@ jobs:
           tmt_context: "arch=x86_64;distro=fedora-40"
           tmt_plan_regex: bootc-qcow2
           tf_scope: private
-          secrets: "QUAY_USERNAME=${{ secrets.QUAY_USERNAME }};QUAY_PASSWORD=${{ secrets.QUAY_PASSWORD }};STAGE_REDHAT_IO_USERNAME=${{ secrets.STAGE_REDHAT_IO_USERNAME }};STAGE_REDHAT_IO_TOKEN=${{ secrets.STAGE_REDHAT_IO_TOKEN }}"
+          # secrets: "QUAY_USERNAME=${{ secrets.QUAY_USERNAME }};QUAY_PASSWORD=${{ secrets.QUAY_PASSWORD }};STAGE_REDHAT_IO_USERNAME=${{ secrets.STAGE_REDHAT_IO_USERNAME }};STAGE_REDHAT_IO_TOKEN=${{ secrets.STAGE_REDHAT_IO_TOKEN }}"
           variables: "ARCH=x86_64"
           timeout: 90
-
+          secrets: |
+            QUAY_USERNAME=${{ secrets.QUAY_USERNAME }};
+            QUAY_PASSWORD=${{ secrets.QUAY_PASSWORD }};
+            STAGE_REDHAT_IO_USERNAME=${{ secrets.STAGE_REDHAT_IO_USERNAME }};
+            STAGE_REDHAT_IO_TOKEN=${{ secrets.STAGE_REDHAT_IO_TOKEN }};
+            DOWNLOAD_NODE=${{ secrets.DOWNLOAD_NODE }};
 
 
